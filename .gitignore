@@ -20,6 +20,7 @@
 *.txt
 Accounts.txt
 Server.txt
+BannedSites.txt
 
 .env
 *.env

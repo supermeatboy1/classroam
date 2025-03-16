@@ -6,7 +6,6 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
-import javax.swing.table.*;
 
 import com.formdev.flatlaf.*;
 
@@ -20,6 +19,7 @@ public class MainWindow {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					Env.load();
 					UIManager.setLookAndFeel(new FlatDarkLaf());
 					
 					ServerThread.startServer();
