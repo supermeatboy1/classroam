@@ -21,6 +21,10 @@
 Accounts.txt
 Server.txt
 
+.env
+*.env
+.env.*
+
 #*.so
 #*.dylib
 #*.dll
