@@ -20,6 +20,8 @@ public class MainWindow {
 			public void run() {
 				try {
 					Env.load();
+					WebsiteChecker.load();
+					/*
 					UIManager.setLookAndFeel(new FlatDarkLaf());
 					
 					ServerThread.startServer();
@@ -27,6 +29,7 @@ public class MainWindow {
 
 					MainWindow window = new MainWindow();
 					window.frame.setVisible(true);
+					*/
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
