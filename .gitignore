@@ -14,6 +14,12 @@
 # Created by https://www.gitignore.io/api/git,java,maven,eclipse,windows
 
 ### Eclipse ###
+natives/
+lib/
+
+*.so
+*.dylib
+*.dll
 
 .metadata
 bin/
