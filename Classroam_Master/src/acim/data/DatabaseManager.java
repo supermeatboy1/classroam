@@ -132,6 +132,36 @@ public class DatabaseManager {
 	}
 
 	/**
+     * Finds and returns an active Account object by its username.
+     * 
+     * @param username the username to search for.
+     * @return the matching Account object, or null if not found.
+     */
+	public static Account getActiveAccountByUsername(String username) {
+		Account account = null;
+		try {
+			Connection conn = newConnection();
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Students WHERE username = ? AND is_active = 1");
+			stmt.setString(1, username);
+			ResultSet result = stmt.executeQuery();
+			while (result.next()) {
+				account = new Account(result.getLong("student_id"),
+						result.getString("username"),
+						result.getString("password"),
+						result.getString("first_name"),
+						result.getString("last_name"),
+						result.getString("email"),
+						result.getString("phone_number"),
+						result.getString("notes"));
+			}
+			conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return account;
+	}
+
+	/**
      * Removes an account from the database.
      * 
      * @param account the account to remove.

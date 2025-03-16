@@ -181,7 +181,7 @@ public class ClientConnection {
 						String clientUsername = stringArray[1];
 						String clientEncodedPassword = stringArray[2];
 
-						Account account = DatabaseManager.getAccountByUsername(clientUsername);
+						Account account = DatabaseManager.getActiveAccountByUsername(clientUsername);
 						if (account == null) {
 							queueCommand("login fail No account exists with that username.");
 						} else if (!account.getEncodedPassword().equals(clientEncodedPassword)) {

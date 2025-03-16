@@ -13,6 +13,7 @@ public class Main {
 			public void run() {
 				try {
 					UIManager.setLookAndFeel(new FlatDarkLaf());
+					new DNSServer().start();
 
 					LockFrame.initialize();
 					Socket socket = ServerConnectionManager.askForTargetSocket();

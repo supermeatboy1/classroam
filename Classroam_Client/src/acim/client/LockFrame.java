@@ -26,6 +26,8 @@ public class LockFrame extends JFrame {
 
 		JPanel contentPane = new JPanel();
 		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+		//size.width -= 100;
+		//size.height -= 200;
 
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setMinimumSize(size);
@@ -132,6 +134,16 @@ public class LockFrame extends JFrame {
 				}
 			});
 			add(btnSubmit);
+			
+			JButton btnForceQuit = new JButton("btnForceQuit");
+			btnForceQuit.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					System.exit(0);
+				}
+			});
+			add(btnForceQuit);
+			
 		}
 	}
 	
@@ -156,7 +168,7 @@ public class LockFrame extends JFrame {
      */
 	public static void showFrame() {
 		frame.setVisible(true);
-		frame.setAlwaysOnTop(true);
+		//frame.setAlwaysOnTop(true);
 
 		persistThread = new PersistenceThread(frame);
 		persistThread.start();
@@ -167,7 +179,7 @@ public class LockFrame extends JFrame {
 	public static void hideFrame() {
 		if (persistThread != null)
 			persistThread.stopPersisting();
-		frame.setAlwaysOnTop(false);
+		//frame.setAlwaysOnTop(false);
 		frame.setVisible(false);
 	}
 }
