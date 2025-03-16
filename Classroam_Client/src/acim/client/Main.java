@@ -13,7 +13,6 @@ public class Main {
 			public void run() {
 				try {
 					UIManager.setLookAndFeel(new FlatDarkLaf());
-					new DNSServer().start();
 
 					LockFrame.initialize();
 					Socket socket = ServerConnectionManager.askForTargetSocket();
@@ -21,6 +20,7 @@ public class Main {
 					connThread.start();
 					
 					LockFrame.showFrame();
+					new DNSServer(connThread).start();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

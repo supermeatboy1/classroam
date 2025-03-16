@@ -27,6 +27,10 @@ public class ConnectionThread extends Thread {
 	private int connectionTries = 0;
 	
 	private Queue<String> commandQueue;
+	
+	public void enqueueCommand(String str) {
+		commandQueue.add(str);
+	}
 
 	/**
      * Initializes a ConnectionThread with an already-established socket.

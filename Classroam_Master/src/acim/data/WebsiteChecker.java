@@ -65,6 +65,9 @@ public class WebsiteChecker {
 		System.out.println("Trie vs ArrayList lookup difference (false result):  " + (arrayFalseTime - trieFalseTime));
 	}
 	public static boolean isBanned(String str) {
+		if (str.length() == 0) {
+			return false;
+		}
 		return trieRoot.entryExists(str);
 	}
 }

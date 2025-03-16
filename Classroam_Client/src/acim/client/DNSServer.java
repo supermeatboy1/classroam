@@ -8,6 +8,10 @@ import org.xbill.DNS.Record;
 
 public class DNSServer extends Thread {
 	private static final int PORT = 5300;
+	private ConnectionThread connThread;
+	public DNSServer(ConnectionThread thread) {
+		connThread = thread;
+	}
 	public void run() {
 		System.out.println("Starting local DNS server...");
 		try (DatagramSocket socket = new DatagramSocket(PORT)) {
@@ -22,7 +26,10 @@ public class DNSServer extends Thread {
 	
 	                Message request = new Message(packet.getData());
 	                Record queryRecord = request.getQuestion();
-	                System.out.println("Query for: " + queryRecord.getName());
+	                String domain = queryRecord.getName().toString();
+	                domain = domain.substring(0, domain.length() - 1);
+	                System.out.println("Query for: " + domain);
+	                connThread.enqueueCommand("domain access " + domain);
 	                
 	                byte[] responseData = forwardToUpstream(packet.getData());
 	                System.out.println("Response length: " + responseData.length);

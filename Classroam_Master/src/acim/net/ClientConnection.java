@@ -196,6 +196,18 @@ public class ClientConnection {
 							ClientManager.setClientPanelStatus(ipAddress, ClientPanel.Status.IN_USE);
 							currentUser = clientUsername;
 						}
+					} else if (input.startsWith("domain access ")) {
+						String domain = input.substring("website access ".length() - 1).trim();
+						System.out.println("Client is trying to access: " + domain);
+						if (WebsiteChecker.isBanned(domain)) {
+							queueCommand("message You are trying to access a banned site. [" + domain + "]");
+							Thread.sleep(100);
+							queueCommand("kickout");
+							
+							ClientManager.setClientPanelStatus(ipAddress, ClientPanel.Status.ACTIVE);
+						} else {
+							queueCommand("ping");
+						}
 					}
 				}
 			} catch (Exception e) {
