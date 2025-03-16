@@ -160,7 +160,7 @@ public class ConnectionThread extends Thread {
 									JOptionPane.ERROR_MESSAGE);
 					} else if (input.equals("kickout")) {
 						LockFrame.showFrame();
-					} else if (input.startsWith("allow access ")) {
+					} else if (input.startsWith("allow access")) {
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
