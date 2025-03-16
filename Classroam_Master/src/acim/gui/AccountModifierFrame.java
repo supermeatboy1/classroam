@@ -151,7 +151,7 @@ public class AccountModifierFrame extends JFrame {
 					return;
 				}
 				
-				Account newAccount = new Account(txtUsername.getText(), null, txtFirstName.getText(),
+				Account newAccount = new Account(-1, txtUsername.getText(), null, txtFirstName.getText(),
 						txtLastName.getText(), txtEmail.getText(),
 						txtPhoneNumber.getText(), txtNotes.getText());
 				newAccount.setPassword(new String(txtPassword.getPassword()));
@@ -167,9 +167,6 @@ public class AccountModifierFrame extends JFrame {
 						txtPhoneNumber.getText(),
 						txtNotes.getText()
 				});
-
-				// Instantly update the JTable showing the accounts.
-				DatabaseManager.updateAccountTable(true);
 
 				dispose();
 			}
@@ -208,8 +205,6 @@ public class AccountModifierFrame extends JFrame {
 				String oldUsername = modify.getUsername();
 				// Check if a computer is currently connected to the user that is selected.
 				ClientConnection connection = ClientManager.getConnectionFromUsername(oldUsername);
-				// Update the available seconds data based on the table.
-				long currentSeconds = Long.parseLong((String) DatabaseManager.getAccountTableModel().getValueAt(selectedRow, 6));
 				modify.setUsername(txtUsername.getText());
 				if (connection != null) {
 					// Change the username of the client connection.
@@ -230,14 +225,6 @@ public class AccountModifierFrame extends JFrame {
 				modify.setPhoneNumber(txtPhoneNumber.getText());
 				modify.setNotes(txtNotes.getText());
 
-				/*
-				if (connection != null) {
-					connection.setAccount(modify);
-				}
-				*/
-				
-				// Change the username in the accounts file if necessary.
-				DatabaseManager.updateAccountUsername(modify, oldUsername);
 				// Save it to the database file.
 				DatabaseManager.updateAccount(modify);
 				// Instantly update the JTable showing the accounts.

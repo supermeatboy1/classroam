@@ -12,6 +12,7 @@ import java.text.*;
 public class Account {
 	private String username;
 	private String encodedPassword;
+	private long id;
 	private String firstName, lastName, email, phoneNumber, notes;
 	
 	/**
@@ -27,7 +28,7 @@ public class Account {
 	 * @param phoneNumber The user's phone number
 	 * @param notes Additional notes related to the account
 	 */
-	public Account(String username, String encodedPassword,
+	public Account(long id, String username, String encodedPassword,
 					String firstName, String lastName, String email,
 					String phoneNumber, String notes) {
 		this.username = username;
@@ -58,6 +59,7 @@ public class Account {
 	public String getEmail() { return email; }
 	public String getPhoneNumber() { return phoneNumber; }
 	public String getNotes() { return notes; }
+	public long getId() { return id; }
 
 	// Setters for fields which provides ability to modify account information
 	public void setUsername(String username) { this.username = username; }

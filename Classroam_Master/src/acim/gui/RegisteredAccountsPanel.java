@@ -76,10 +76,15 @@ public class RegisteredAccountsPanel extends JPanel {
 					JOptionPane.showMessageDialog(null, "Please select a row first.");
 					return;
 				}
-				
-				Account modifyingAccount = DatabaseManager.getAccountByUsername(
-						(String) tableAccount.getValueAt(tableAccount.getSelectedRow(), 0));
-				AccountModifierFrame.updateAccountFrame(tableAccount, modifyingAccount, tableAccount.getSelectedRow());
+				Account account = new Account(-1,
+					(String) tableAccount.getValueAt(tableAccount.getSelectedRow(), 0),
+					"",
+					(String) tableAccount.getValueAt(tableAccount.getSelectedRow(), 2),
+					(String) tableAccount.getValueAt(tableAccount.getSelectedRow(), 3),
+					(String) tableAccount.getValueAt(tableAccount.getSelectedRow(), 4),
+					(String) tableAccount.getValueAt(tableAccount.getSelectedRow(), 5),
+					(String) tableAccount.getValueAt(tableAccount.getSelectedRow(), 6));
+				AccountModifierFrame.updateAccountFrame(tableAccount, account, tableAccount.getSelectedRow());
 			}
 		});
 		panelAccountActions.add(btnUpdateInformation);

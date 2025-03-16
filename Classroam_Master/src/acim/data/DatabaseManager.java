@@ -1,31 +1,46 @@
 package acim.data;
 
-import java.text.*;
-import java.io.File;
-import java.io.IOException;
-//import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.stream.*;
+import java.sql.*;
 
 import javax.swing.*;
 import javax.swing.table.*;
 
-// TODO: Replace with Sqlite.
-
-/**
- * DatabaseManager handles account data persistence and retrieval using a simple text file-based system.
- * The account data is stored in "Accounts.txt", and operations include reading, writing, updating,
- * and deleting accounts. This class also integrates with a JTable to display account data in a GUI.
- */
 public class DatabaseManager {
 	private static final long TABLE_UPDATE_MILLISECONDS_LIMIT = 1000;
 	private static String ROW_SEPARATOR = "\uE000";
 	private static JTable tableAccounts = null;
 	private static DefaultTableModel tableModel = null;
 	private static long lastTableUpdateMillis = 0;
-	private static NumberFormat decimalFormatter = new DecimalFormat("0.00");
+	private static Connection connection = null;
 
+	private static Connection newConnection() throws SQLException {
+		if (connection == null || connection.isClosed()) {
+			if (connection != null) {
+				connection.close();
+			}
+			String url = "jdbc:mysql://" + Env.get("DB_HOST") + ":" + Env.get("DB_PORT") + "/" + Env.get("DB_NAME") + "?useSSL=true";
+			connection = DriverManager.getConnection(url, Env.get("DB_USER"), Env.get("DB_PASSWORD"));
+		}
+		return connection;
+	}
+	private static void getStudentSnippet() throws SQLException {
+		Connection conn = newConnection();
+		Statement stmt = conn.createStatement();
+		ResultSet result = stmt.executeQuery("SELECT * FROM StudentSnippet");
+		while (result.next()) {
+			tableModel.addRow(new String[] {
+				result.getString("username"),
+				"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", // Dots to censor password
+				result.getString("first_name"),
+				result.getString("last_name"),
+				result.getString("email"),
+				result.getString("phone_number"),
+				result.getString("notes"),
+			});
+		}
+		conn.close();
+	}
+	
 	/**
      * Sets the JTable that will be used to display account data.
      * 
@@ -42,96 +57,6 @@ public class DatabaseManager {
      * @return the DefaultTableModel for the account JTable.
      */
 	public static DefaultTableModel getAccountTableModel() { return tableModel; }
-	
-	/**
-     * Ensures that the "Accounts.txt" file exists. Creates it if necessary.
-     * If the file exists but is a directory, deletes and recreates it.
-     */
-	private static void createAccountsFile() {
-		try {
-			File f = new File("Accounts.txt");
-			if (!f.exists()) {
-				f.createNewFile();
-			} else {
-				if (f.isDirectory()) {
-					f.delete();
-					f.createNewFile();
-				}
-			}
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, "Accounts file creation error: " + e.getLocalizedMessage(),
-					e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
-	/**
-     * Opens "Accounts.txt" as a Stream of lines for reading.
-     * 
-     * @return Stream of lines from the file, or null if an error occurs.
-     */
-	private static Stream<String> getAccountContentsStream() {
-		createAccountsFile();
-		try {
-			return Files.lines(Paths.get("Accounts.txt"));
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, "File read error: " + e.getLocalizedMessage(),
-					e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
-			return null;
-		}
-	}
-
-	/**
-     * Reads all lines from "Accounts.txt" into a List.
-     * 
-     * @return List of account rows, or null if an error occurs.
-     */
-	private static List<String> getAccountContentsList() {
-		createAccountsFile();
-		try {
-			return Files.readAllLines(Paths.get("Accounts.txt"));
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, "File read error: " + e.getLocalizedMessage(),
-					e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
-			return null;
-		}
-	}
-
-	/**
-     * Saves a list of account rows back to "Accounts.txt".
-     * 
-     * @param contents List of account rows.
-     */
-	private static void saveAccountListContents(List<String> contents) {
-		createAccountsFile();
-		try {
-			Files.write(Paths.get("Accounts.txt"), contents);
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, "File write error: " + e.getLocalizedMessage(),
-					e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-     * Adds a single row to the JTable by deserializing a row string into an Account object.
-     * 
-     * @param row the serialized account row.
-     */
-	private static void addRowToTableFromString(String row) {
-		Account account = deserializeAccount(row);
-		if (account == null)
-			return;
-		
-		tableModel.addRow(new String[] {
-				account.getUsername(),
-				"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", // Dots to censor password
-				account.getFirstName(),
-				account.getLastName(),
-				account.getEmail(),
-				account.getPhoneNumber(),
-				account.getNotes()
-			});
-	}
 
 	/**
      * Triggers a refresh of the account table if enough time has passed since the last update.
@@ -154,26 +79,14 @@ public class DatabaseManager {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				// Save the current selected row.
-				int selectedRow = tableAccounts.getSelectedRow();
-				
-				while (tableModel.getRowCount() > 0)
-					tableModel.removeRow(0);
-
-				// Get the contents of the file as a Stream of Strings.
-				Stream<String> dbContentStream = getAccountContentsStream();
-				if (dbContentStream == null) {
-					return;
-				}
-				dbContentStream.forEach(row -> addRowToTableFromString(row));
-				if (selectedRow != -1) {
-					try {
-						tableAccounts.setRowSelectionInterval(selectedRow, selectedRow);
-					} catch (Exception e) {
-						// Ignore "row selection out of range" errors.
+				try {
+					while (tableModel.getRowCount() > 0) {
+						tableModel.removeRow(0);
 					}
+					getStudentSnippet();
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				dbContentStream.close();
 			}
 		});
 		
@@ -188,53 +101,78 @@ public class DatabaseManager {
      * @return the matching Account object, or null if not found.
      */
 	public static Account getAccountByUsername(String username) {
-		// Get the contents of the file as a Stream of Strings.
-		Stream<String> dbContentStream = getAccountContentsStream();
-		if (dbContentStream == null) {
-			return null;
+		Account account = null;
+		try {
+			Connection conn = newConnection();
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Students WHERE username = ?");
+			stmt.setString(1, username);
+			ResultSet result = stmt.executeQuery();
+			while (result.next()) {
+				account = new Account(result.getLong("student_id"),
+						result.getString("username"),
+						result.getString("password"),
+						result.getString("first_name"),
+						result.getString("last_name"),
+						result.getString("email"),
+						result.getString("phone_number"),
+						result.getString("notes"));
+			}
+			conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		String line = dbContentStream.filter(row -> row.startsWith(username + ROW_SEPARATOR))
-									.findFirst()
-									.orElse(null);
-		if (line == null)
-			return null;
-		
-		return deserializeAccount(line);
+		return account;
 	}
 
 	/**
-     * Removes an account from the file.
+     * Removes an account from the database.
      * 
      * @param account the account to remove.
      */
 	public static void removeAccount(Account account) {
-		List<String> rowList = getAccountContentsList();
-		if (rowList == null || rowList.isEmpty())
-			return;
-		
-		int lineNumber = 0;
-		for (String row : rowList) {
-			if (account.getUsername().equals(row.split(ROW_SEPARATOR)[0]))
-				break;
-			lineNumber++;
+		try {
+			Connection conn = newConnection();
+			PreparedStatement stmt = conn.prepareStatement("UPDATE Students SET is_active = 0 WHERE username = ?");
+			stmt.setString(1, account.getUsername());
+			int result = stmt.executeUpdate();
+			if (result == 0) {
+				conn.close();
+				throw new SQLException("Error removing account.");
+			}
+			conn.close();
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, "Database error: " + e.getLocalizedMessage(),
+					e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
 		}
-		rowList.remove(lineNumber);
-		saveAccountListContents(rowList);
 	}
 
 	/**
-     * Adds a new account to the file.
+     * Adds a new account to the database.
      * 
      * @param account the new account to add.
      */
 	public static void createNewAccount(Account account) {
-		// Add account to account list stored in the file.
-		createAccountsFile();
 		try {
-			Files.write(Paths.get("Accounts.txt"), (serializeAccount(account) + "\r\n"
-						).getBytes(), StandardOpenOption.APPEND);
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, "File write error: " + e.getLocalizedMessage(),
+			Connection conn = newConnection();
+			PreparedStatement stmt = conn.prepareStatement(
+					"INSERT INTO Students(first_name, last_name, email, phone_number,"
+					+ "username, password, notes) VALUES (?, ?, ?, ?, ?, ?, ?)");
+			stmt.setString(1, account.getFirstName());
+			stmt.setString(2, account.getLastName());
+			stmt.setString(3, account.getEmail());
+			stmt.setString(4, account.getPhoneNumber());
+			stmt.setString(5, account.getUsername());
+			stmt.setString(6, account.getEncodedPassword());
+			stmt.setString(7, account.getNotes());
+			int result = stmt.executeUpdate();
+			if (result == 0) {
+				conn.close();
+				throw new SQLException("Error creating account.");
+			}
+			conn.close();
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, "Database error: " + e.getLocalizedMessage(),
 					e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
@@ -247,18 +185,22 @@ public class DatabaseManager {
      * @param oldUsername the previous username.
      */
 	public static void updateAccountUsername(Account updatedAccount, String oldUsername) {
-		if (updatedAccount.getUsername().equals(oldUsername))
-			return;
-		
-		List<String> rowList = getAccountContentsList();
-		int lineNumber = 0;
-		for (String row : rowList) {
-			Account outdatedAccount = deserializeAccount(row);
-			if (outdatedAccount.getUsername().equals(oldUsername))
-				rowList.set(lineNumber, serializeAccount(updatedAccount));
-			lineNumber++;
+		try {
+			Connection conn = newConnection();
+			PreparedStatement stmt = conn.prepareStatement("UPDATE Students SET username = ? WHERE username = ?");
+			stmt.setString(0, updatedAccount.getUsername());
+			stmt.setString(1, oldUsername);
+			int result = stmt.executeUpdate();
+			if (result == 0) {
+				conn.close();
+				throw new SQLException("Error removing account.");
+			}
+			conn.close();
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, "Database error: " + e.getLocalizedMessage(),
+					e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
 		}
-		saveAccountListContents(rowList);
 	}
 
 	/**
@@ -267,25 +209,33 @@ public class DatabaseManager {
      * @param account the account to update.
      */
 	public static void updateAccount(Account account) {
-		List<String> rowList = getAccountContentsList();
-		int lineNumber = 0;
-		for (String row : rowList) {
-			if (account.getUsername().equals(row.split(ROW_SEPARATOR)[0]))
-				rowList.set(lineNumber, serializeAccount(account));
-			lineNumber++;
+		try {
+			Connection conn = newConnection();
+			PreparedStatement stmt = conn.prepareStatement(
+					"UPDATE Students SET first_name = ?, last_name = ?,"
+					+ "email = ?, phone_number = ?, username = ?,"
+					+ "password = ?, notes = ? WHERE username = ?");
+			stmt.setString(1, account.getFirstName());
+			stmt.setString(2, account.getLastName());
+			stmt.setString(3, account.getEmail());
+			stmt.setString(4, account.getPhoneNumber());
+			stmt.setString(5, account.getUsername());
+			stmt.setString(6, account.getEncodedPassword());
+			stmt.setString(7, account.getNotes());
+			stmt.setString(8, account.getUsername());
+			int result = stmt.executeUpdate();
+			if (result == 0) {
+				conn.close();
+				throw new SQLException("Error creating account.");
+			}
+			conn.close();
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, "Database error: " + e.getLocalizedMessage(),
+					e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
 		}
-		saveAccountListContents(rowList);
 	}
 	
-	private static Account deserializeAccount(String line) {
-		if (line == null || line.trim().length() == 0)
-			return null;
-		String[] split = line.split(ROW_SEPARATOR);
-		Account account = new Account(
-			split[0], split[1], split[2], split[3], split[4], split[5], split[6]
-		);
-		return account;
-	}
 	private static String serializeAccount(Account account) {
 		return account.getUsername() + ROW_SEPARATOR +
 				account.getEncodedPassword() + ROW_SEPARATOR +
