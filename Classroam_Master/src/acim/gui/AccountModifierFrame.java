@@ -135,12 +135,12 @@ public class AccountModifierFrame extends JFrame {
 		btnProceed.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (txtUsername.getText().isBlank()) {
+				if (txtUsername.getText().trim().length() == 0) {
 					JOptionPane.showMessageDialog(null, "Blank usernames are not allowed.",
 							"Account creation error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				if (txtPassword.getText().isBlank()) {
+				if (txtPassword.getText().trim().length() == 0) {
 					JOptionPane.showMessageDialog(null, "Blank passwords are not allowed.",
 							"Account creation error", JOptionPane.ERROR_MESSAGE);
 					return;
@@ -165,9 +165,6 @@ public class AccountModifierFrame extends JFrame {
 						txtLastName.getText(),
 						txtEmail.getText(),
 						txtPhoneNumber.getText(),
-						"0",
-						newAccount.getLastLoginFormattedString(),
-						"0.00",
 						txtNotes.getText()
 				});
 
@@ -202,7 +199,7 @@ public class AccountModifierFrame extends JFrame {
 		btnProceed.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (txtUsername.getText().isBlank()) {
+				if (txtUsername.getText().trim().length() == 0) {
 					JOptionPane.showMessageDialog(null, "Blank usernames are not allowed.",
 							"Account creation error", JOptionPane.ERROR_MESSAGE);
 					return;
@@ -213,7 +210,6 @@ public class AccountModifierFrame extends JFrame {
 				ClientConnection connection = ClientManager.getConnectionFromUsername(oldUsername);
 				// Update the available seconds data based on the table.
 				long currentSeconds = Long.parseLong((String) DatabaseManager.getAccountTableModel().getValueAt(selectedRow, 6));
-				modify.setAvailableSeconds(currentSeconds);
 				modify.setUsername(txtUsername.getText());
 				if (connection != null) {
 					// Change the username of the client connection.
@@ -234,9 +230,11 @@ public class AccountModifierFrame extends JFrame {
 				modify.setPhoneNumber(txtPhoneNumber.getText());
 				modify.setNotes(txtNotes.getText());
 
+				/*
 				if (connection != null) {
 					connection.setAccount(modify);
 				}
+				*/
 				
 				// Change the username in the accounts file if necessary.
 				DatabaseManager.updateAccountUsername(modify, oldUsername);

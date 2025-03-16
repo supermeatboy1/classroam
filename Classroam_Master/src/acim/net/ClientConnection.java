@@ -34,7 +34,6 @@ public class ClientConnection {
 	
 	private InputThread inThread;
 	private OutputThread outThread;
-	private UsageMonitoringThread usageThread = null;
 	
 	private Queue<String> commandQueue;
 	private String currentUser;
@@ -76,37 +75,12 @@ public class ClientConnection {
 		commandQueue.add(command);
 	}
 	/**
-     * Updates the usage time for the current session (if monitored).
-     */
-	public void updateUsageSeconds() {
-		if (usageThread != null && !usageThread.hasEnded())
-			usageThread.updateSeconds();
-	}
-	/**
      * Forces the client to be kicked out.
      */
 	public void kickout() {
-		if (usageThread != null && !usageThread.hasEnded())
-			usageThread.kickout();
-	}
-	/**
-     * Sets the account for this client, used for time-tracking.
-     * 
-     * @param newAccount The account to associate with the client.
-     */
-	public void setAccount(Account newAccount) {
-		if (usageThread != null && !usageThread.hasEnded())
-			usageThread.setAccount(newAccount);
-	}
-	/**
-     * Gets the remaining time on the client's account.
-     * 
-     * @return Available seconds or -1 if not applicable.
-     */
-	public long getAccountSeconds() {
-		if (usageThread != null && !usageThread.hasEnded())
-			usageThread.account.getAvailableSeconds();
-		return -1;
+		ClientManager.setClientPanelCurrentUser(ipAddress, "");
+		ClientManager.setClientPanelCurrentName(ipAddress, "");
+		ClientManager.setClientPanelStatus(ipAddress, ClientPanel.Status.ACTIVE);
 	}
 	@Override
 	public boolean equals(Object other) {
@@ -141,10 +115,6 @@ public class ClientConnection {
 			closeConnection();
 			ClientManager.removeClientConnection(this);
 			System.out.println("Client disconnected: " + client.getInetAddress().getHostAddress() + ":" + client.getPort());
-			
-			// Make sure to interrupt the usage thread.
-			if (usageThread != null && !usageThread.isInterrupted() && !usageThread.hasEnded())
-				usageThread.interrupt();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -182,7 +152,7 @@ public class ClientConnection {
 							if (line.startsWith("chunk length ")) {
 								int chunk_length = Integer.parseInt(line.replaceFirst("chunk length ", ""));
 								String chunk_line = "";
-								while (chunk_line.isBlank() || chunk_line.equals("null"))
+								while (chunk_line.trim().length() == 0 || chunk_line.equals("null"))
 									chunk_line = reader.readLine();
 								byte[] chunk = decoder.decode(chunk_line);
 								baos.write(chunk, 0, chunk_length);
@@ -216,22 +186,15 @@ public class ClientConnection {
 							queueCommand("login fail No account exists with that username.");
 						} else if (!account.getEncodedPassword().equals(clientEncodedPassword)) {
 							queueCommand("login fail Invalid password.");
-						} else if (account.getAvailableSeconds() == 0) {
-							queueCommand("login fail Account balance is empty.");
 						} else if (ClientManager.getConnectionFromUsername(clientUsername) != null) {
 							queueCommand("login fail This username is currently in use.<br>Please try again later.");
 						} else {
-							account.updateLastLoginToNow();
-							
-							queueCommand("allow access " + account.getAvailableSeconds());
+							queueCommand("allow access");
 							ClientManager.setClientPanelCurrentUser(ipAddress, clientUsername);
 							ClientManager.setClientPanelCurrentName(ipAddress,
 									account.getFirstName() + " " + account.getLastName());
 							ClientManager.setClientPanelStatus(ipAddress, ClientPanel.Status.IN_USE);
 							currentUser = clientUsername;
-							
-							usageThread = new UsageMonitoringThread(account);
-							usageThread.start();
 						}
 					}
 				}
@@ -268,9 +231,11 @@ public class ClientConnection {
 						if (command == null)
 							continue;
 						
+						/*
 						if (command.equals("kickout") && usageThread != null && !usageThread.hasEnded()) {
 							usageThread.interrupt();
 						}
+						*/
 						writer.write(command + "\r\n");
 						writer.flush();
 
@@ -288,76 +253,6 @@ public class ClientConnection {
 				System.out.println("Exception occured in OutputThread (" + ipAddress + "): ");
 				e.printStackTrace();
 			}
-		}
-	}
-
-	/**
-     * Monitors usage time and kicks the client out when time runs out.
-     */
-	private class UsageMonitoringThread extends Thread {
-		private Account account;
-		private long startMillis = 0;
-		private long endMillis = 0;
-		private boolean ended = false;
-		
-		private UsageMonitoringThread(Account account) {
-			setAccount(account);
-			updateSeconds();
-		}
-		private void setAccount(Account account) {
-			this.account = account;
-		}
-		private boolean hasEnded() { return ended; }
-		private void updateSeconds() {
-			startMillis = System.currentTimeMillis();
-			endMillis = startMillis + (account.getAvailableSeconds() * 1000);
-		}
-		private void kickout() {
-			queueCommand("kickout");
-			ClientManager.setClientPanelCurrentUser(ipAddress, "");
-			ClientManager.setClientPanelCurrentName(ipAddress, "");
-			ClientManager.setClientPanelStatus(ipAddress, ClientPanel.Status.ACTIVE);
-		}
-		private void deductSecond() {
-			// Deduct the available seconds for an account based on the time elapsed.
-			
-			account.setAvailableSeconds(
-					account.getAvailableSeconds() - 1
-				);
-			account.addSecondToTotalHours();
-			
-			// Prevent negative seconds balance.
-			if (account.getAvailableSeconds() < 0)
-				account.setAvailableSeconds(0);
-
-			// Update database file.
-			DatabaseManager.updateAccount(account);
-			DatabaseManager.updateAccountTable();
-		}
-		
-		@Override
-		public void run() {
-			boolean interrupted = false;
-			try {
-				while (System.currentTimeMillis() <= endMillis) {
-					Thread.sleep(1000); 
-					deductSecond();
-				}
-			} catch (InterruptedException e) {
-				interrupted = true;
-			}
-			
-			kickout();
-			
-			if (!interrupted)
-				account.setAvailableSeconds(0);
-			
-			// Update database file.
-			DatabaseManager.updateAccount(account);
-			DatabaseManager.updateAccountTable();
-			
-			currentUser = null;
-			ended = true;
 		}
 	}
 }

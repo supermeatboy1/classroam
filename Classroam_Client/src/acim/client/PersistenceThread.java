@@ -32,14 +32,16 @@ public class PersistenceThread extends Thread {
 		try {
 			robot = new Robot();
 			while (persisting) {
+				/*
 				robot.keyRelease(KeyEvent.VK_ALT);
 				robot.keyRelease(KeyEvent.VK_CONTROL);
 				robot.keyRelease(KeyEvent.VK_WINDOWS);
 				robot.keyRelease(KeyEvent.VK_TAB);
+				*/
 				// Can hinder the user's ability to type information.
 				// Originally intended to force focus on the frame.
 				// frame.requestFocusInWindow();
-				Thread.sleep(50);
+				Thread.sleep(30);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

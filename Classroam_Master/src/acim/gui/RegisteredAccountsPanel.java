@@ -27,7 +27,7 @@ public class RegisteredAccountsPanel extends JPanel {
 		splitPaneAccountManager.setResizeWeight(0.85);
 		add(splitPaneAccountManager);
 		
-		String column[] = {"Username", "Password", "First Name", "Last Name", "Email", "Phone Number", "Available Seconds", "Last Login", "Total Hours", "Notes"};
+		String column[] = {"Username", "Password", "First Name", "Last Name", "Email", "Phone Number", "Notes"};
 		String data[][] = {};
 		tableAccount = new JTable();
 		tableAccount.setModel(new DefaultTableModel(data, column) {
@@ -43,9 +43,7 @@ public class RegisteredAccountsPanel extends JPanel {
 		columnModel.getColumn(1).setPreferredWidth(40);
 		columnModel.getColumn(4).setPreferredWidth(40);
 		columnModel.getColumn(5).setPreferredWidth(70);
-		columnModel.getColumn(7).setPreferredWidth(100);
-		columnModel.getColumn(8).setPreferredWidth(40);
-		columnModel.getColumn(9).setPreferredWidth(100);
+		columnModel.getColumn(6).setPreferredWidth(100);
 		tableAccount.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		
 		// Only allow the user to select ONE row in the table.
@@ -134,6 +132,7 @@ public class RegisteredAccountsPanel extends JPanel {
 		});
 		panelAccountActions.add(btnNewAccount);
 		
+		/*
 		JButton btnPayForMinutes = new JButton("Pay For Minutes");
 		btnPayForMinutes.addActionListener(new ActionListener() {
 			@Override
@@ -174,6 +173,7 @@ public class RegisteredAccountsPanel extends JPanel {
 			}
 		});
 		panelAccountActions.add(btnPayForMinutes);
+		*/
 		
 		JButton btnDeleteAccount = new JButton("Delete Account");
 		btnDeleteAccount.addActionListener(new ActionListener() {

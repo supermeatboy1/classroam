@@ -52,8 +52,6 @@ public class ConnectionThread extends Thread {
 	public void closeSocket() {
 		try {
 			if (!socket.isClosed()) {
-				UsageMonitorFrame.hideFrame();
-				UsageMonitorFrame.interruptUpdateThread();
 				LockFrame.showFrame();
 				socket.close();
 			}
@@ -149,10 +147,12 @@ public class ConnectionThread extends Thread {
 						return;
 					}
 
-					if (input.startsWith("update available seconds ")) {
+					/*
+					 	if (input.startsWith("update available seconds ")) {
 						long newSeconds = Long.parseLong(input.replaceFirst("update available seconds ", ""));
-						UsageMonitorFrame.updateRemainingSeconds(newSeconds);
-					} else if (input.startsWith("login fail ")) {
+					} else
+					*/
+					if (input.startsWith("login fail ")) {
 						String failMsg = input.replaceFirst("login fail ", "");
 						JOptionPane.showMessageDialog(null,
 								"<html>Failed to login: <br>" + failMsg + "<html>",
@@ -160,7 +160,6 @@ public class ConnectionThread extends Thread {
 									JOptionPane.ERROR_MESSAGE);
 					} else if (input.equals("kickout")) {
 						LockFrame.showFrame();
-						UsageMonitorFrame.hideFrame();
 					} else if (input.startsWith("allow access ")) {
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
@@ -171,9 +170,6 @@ public class ConnectionThread extends Thread {
 										JOptionPane.INFORMATION_MESSAGE);
 							}});
 						LockFrame.hideFrame();
-						UsageMonitorFrame.showFrame();
-						long seconds = Long.parseLong(input.replaceFirst("allow access ", ""));
-						UsageMonitorFrame.createUpdateThread(seconds);
 					} else if (input.startsWith("message ")) {
 						String msg = input.replaceFirst("message ", "");
 						SwingUtilities.invokeLater(new Runnable() {

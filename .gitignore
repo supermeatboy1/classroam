@@ -14,12 +14,16 @@
 # Created by https://www.gitignore.io/api/git,java,maven,eclipse,windows
 
 ### Eclipse ###
-natives/
-lib/
+#natives/
+#lib/
 
-*.so
-*.dylib
-*.dll
+*.txt
+Accounts.txt
+Server.txt
+
+#*.so
+#*.dylib
+#*.dll
 
 .metadata
 bin/

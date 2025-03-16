@@ -14,10 +14,6 @@ public class Account {
 	private String encodedPassword;
 	private String firstName, lastName, email, phoneNumber, notes;
 	
-	private long lastLogin; // Unix timestamp
-	private float totalHours;
-	private long availableSeconds;
-	
 	/**
 	 * Constructor to initialize a new Account with basic personal information.
 	 * The account is initialized with zero usage time, zero available seconds,
@@ -34,10 +30,6 @@ public class Account {
 	public Account(String username, String encodedPassword,
 					String firstName, String lastName, String email,
 					String phoneNumber, String notes) {
-		updateLastLoginToNow();
-		totalHours = 0.0f;
-		availableSeconds = 0;
-		
 		this.username = username;
 		this.encodedPassword = encodedPassword;
 		this.firstName = firstName;
@@ -46,18 +38,7 @@ public class Account {
 		this.phoneNumber = phoneNumber;
 		this.notes = notes;
 	}
-	/**
-	 * Returns a formatted string representing the last login time.
-	 * The format is "MM/dd/yyyy HH:mm:ss".
-	 * 
-	 * @return Formatted last login timestamp.
-	 */
-	public String getLastLoginFormattedString() {
-		Date date = new Date(lastLogin * 1000);
-		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-		return sdf.format(date);
-	}
-	/**
+	/*
 	 * Encodes the given password and stores it in the account.
 	 * Password is encoded using Base64 URL encoding.
 	 * 
@@ -68,22 +49,6 @@ public class Account {
 		this.encodedPassword = encoder.encodeToString(password.getBytes());
 	}
 
-	/**
-	 * Updates the last login timestamp to the current time.
-	 * The value is stored as a Unix timestamp (seconds since epoch).
-	 */
-	public void updateLastLoginToNow() {
-		lastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
-	}
-	
-	/**
-	 * Increments the total hours by adding one second's worth of time.
-	 * One second = 1/3600 hours.
-	 */
-	public void addSecondToTotalHours() {
-		// A second is 1/3600 of an hour.
-		totalHours += 0.0002778f;
-	}
 	
 	// Getters for all fields (provides read-only access to fields)
 	public String getUsername() { return username; }
@@ -93,9 +58,6 @@ public class Account {
 	public String getEmail() { return email; }
 	public String getPhoneNumber() { return phoneNumber; }
 	public String getNotes() { return notes; }
-	public long getLastLogin() { return lastLogin; }
-	public float getTotalHours() { return totalHours; }
-	public long getAvailableSeconds() { return availableSeconds; }
 
 	// Setters for fields which provides ability to modify account information
 	public void setUsername(String username) { this.username = username; }
@@ -104,9 +66,6 @@ public class Account {
 	public void setEmail(String email) { this.email = email; }
 	public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 	public void setNotes(String notes) { this.notes = notes; }
-	public void setLastLogin(long lastLogin) { this.lastLogin = lastLogin; }
-	public void setTotalHours(float totalHours) { this.totalHours = totalHours; }
-	public void setAvailableSeconds(long availableSeconds) { this.availableSeconds = availableSeconds; }
 
 	/**
 	 * Returns a string representation of the account object.
@@ -118,8 +77,7 @@ public class Account {
 	public String toString() {
 		return "Account [username=" + username + ", encodedPassword=" + encodedPassword + ", firstName="
 				+ firstName + ", lastName=" + lastName + ", email=" + email + ", phoneNumber=" + phoneNumber
-				+ ", notes=" + notes + ", lastLogin=" + lastLogin + ", totalHours=" + totalHours + ", availableSeconds="
-				+ availableSeconds + "]";
+				+ ", notes=" + notes + "]";
 	}
 	
 	/**
@@ -135,9 +93,6 @@ public class Account {
 				"<b>Last Name:</b> " + lastName + "<br>" +
 				"<b>Email:</b> " + email + "<br>" +
 				"<b>Phone Number:</b> " + phoneNumber + "<br><br>" +
-				"<b>Available Seconds:</b> " + availableSeconds + "<br><br>" +
-				"<b>Last Login:</b> " + getLastLoginFormattedString() + "<br>" +
-				"<b>Total Hours:</b> " + totalHours + "<br>" +
 				"<b>Notes:</b> " + notes + "<br></html>";
 	}
 }

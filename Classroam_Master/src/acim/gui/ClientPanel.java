@@ -2,6 +2,7 @@ package acim.gui;
 
 import java.awt.*;
 import java.net.*;
+import java.util.Enumeration;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -170,17 +171,34 @@ public class ClientPanel extends JPanel {
      * @return A configured ClientPanel for the local machine.
      */
 	public static ClientPanel createLocalPanel() {
-		InetAddress ip;
+		InetAddress ip = null;
 		try {
-			ip = InetAddress.getLocalHost();
+			Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+			boolean foundIp = false;
+			while(e.hasMoreElements() && !foundIp)
+			{
+			    NetworkInterface n = (NetworkInterface) e.nextElement();
+			    Enumeration<InetAddress> ee = n.getInetAddresses();
+			    while (ee.hasMoreElements() && !foundIp)
+			    {
+			        InetAddress i = (InetAddress) ee.nextElement();
+			        if (i.getHostAddress().startsWith("192.168")) {
+			        	ip = i;
+			        	foundIp = true;
+			        }
+			    }
+			}
+			if (!foundIp) {
+				ip = InetAddress.getLocalHost();
+			}
 			String hostname = ip.getHostName();
 			ClientPanel self = new ClientPanel(ip.getHostAddress(), -1, hostname);
 			self.isLocalClientPanel = true;
 			self.status = Status.IN_USE;
 			self.updateText();
 			return self;
-		} catch (UnknownHostException e) {
-			JOptionPane.showMessageDialog(null, "Unknown host: " + e.getLocalizedMessage(), e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Error creating local panel: " + e.getLocalizedMessage(), e.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 			System.exit(-1);
 		}

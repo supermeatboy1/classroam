@@ -129,9 +129,6 @@ public class DatabaseManager {
 				account.getLastName(),
 				account.getEmail(),
 				account.getPhoneNumber(),
-				"" + account.getAvailableSeconds(),
-				account.getLastLoginFormattedString(),
-				decimalFormatter.format(account.getTotalHours()),
 				account.getNotes()
 			});
 	}
@@ -281,15 +278,12 @@ public class DatabaseManager {
 	}
 	
 	private static Account deserializeAccount(String line) {
-		if (line == null || line.strip().isEmpty())
+		if (line == null || line.trim().length() == 0)
 			return null;
 		String[] split = line.split(ROW_SEPARATOR);
 		Account account = new Account(
-			split[0], split[1], split[2], split[3], split[4], split[5], split[9]
+			split[0], split[1], split[2], split[3], split[4], split[5], split[6]
 		);
-		account.setLastLogin(Long.parseLong(split[7]));
-		account.setAvailableSeconds(Long.parseLong(split[6]));
-		account.setTotalHours(Float.parseFloat(split[8]));
 		return account;
 	}
 	private static String serializeAccount(Account account) {
@@ -299,9 +293,6 @@ public class DatabaseManager {
 				account.getLastName() + ROW_SEPARATOR +
 				account.getEmail() + ROW_SEPARATOR +
 				account.getPhoneNumber() + ROW_SEPARATOR +
-				account.getAvailableSeconds() + ROW_SEPARATOR +
-				account.getLastLogin() + ROW_SEPARATOR +
-				account.getTotalHours() + ROW_SEPARATOR +
 				account.getNotes();
 	}
 }
