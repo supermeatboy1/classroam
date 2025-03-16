@@ -40,6 +40,13 @@ public class DatabaseManager {
 		}
 		conn.close();
 	}
+	private static void setStringNullable(PreparedStatement stmt, int pos, String str) throws SQLException {
+		if (str != null && str.trim().length() > 0) {
+			stmt.setString(pos, str);
+		} else {
+			stmt.setNull(pos, java.sql.Types.VARCHAR);
+		}
+	}
 	
 	/**
      * Sets the JTable that will be used to display account data.
@@ -133,7 +140,7 @@ public class DatabaseManager {
 		try {
 			Connection conn = newConnection();
 			PreparedStatement stmt = conn.prepareStatement("UPDATE Students SET is_active = 0 WHERE username = ?");
-			stmt.setString(1, account.getUsername());
+			setStringNullable(stmt, 1, account.getUsername());
 			int result = stmt.executeUpdate();
 			if (result == 0) {
 				conn.close();
@@ -158,13 +165,13 @@ public class DatabaseManager {
 			PreparedStatement stmt = conn.prepareStatement(
 					"INSERT INTO Students(first_name, last_name, email, phone_number,"
 					+ "username, password, notes) VALUES (?, ?, ?, ?, ?, ?, ?)");
-			stmt.setString(1, account.getFirstName());
-			stmt.setString(2, account.getLastName());
-			stmt.setString(3, account.getEmail());
-			stmt.setString(4, account.getPhoneNumber());
-			stmt.setString(5, account.getUsername());
-			stmt.setString(6, account.getEncodedPassword());
-			stmt.setString(7, account.getNotes());
+			setStringNullable(stmt, 1, account.getFirstName());
+			setStringNullable(stmt, 2, account.getLastName());
+			setStringNullable(stmt, 3, account.getEmail());
+			setStringNullable(stmt, 4, account.getPhoneNumber());
+			setStringNullable(stmt, 5, account.getUsername());
+			setStringNullable(stmt, 6, account.getEncodedPassword());
+			setStringNullable(stmt, 7, account.getNotes());
 			int result = stmt.executeUpdate();
 			if (result == 0) {
 				conn.close();
@@ -188,8 +195,8 @@ public class DatabaseManager {
 		try {
 			Connection conn = newConnection();
 			PreparedStatement stmt = conn.prepareStatement("UPDATE Students SET username = ? WHERE username = ?");
-			stmt.setString(0, updatedAccount.getUsername());
-			stmt.setString(1, oldUsername);
+			setStringNullable(stmt, 0, updatedAccount.getUsername());
+			setStringNullable(stmt, 1, oldUsername);
 			int result = stmt.executeUpdate();
 			if (result == 0) {
 				conn.close();
@@ -211,18 +218,33 @@ public class DatabaseManager {
 	public static void updateAccount(Account account) {
 		try {
 			Connection conn = newConnection();
-			PreparedStatement stmt = conn.prepareStatement(
-					"UPDATE Students SET first_name = ?, last_name = ?,"
-					+ "email = ?, phone_number = ?, username = ?,"
-					+ "password = ?, notes = ? WHERE username = ?");
-			stmt.setString(1, account.getFirstName());
-			stmt.setString(2, account.getLastName());
-			stmt.setString(3, account.getEmail());
-			stmt.setString(4, account.getPhoneNumber());
-			stmt.setString(5, account.getUsername());
-			stmt.setString(6, account.getEncodedPassword());
-			stmt.setString(7, account.getNotes());
-			stmt.setString(8, account.getUsername());
+			PreparedStatement stmt;
+			if (account.getEncodedPassword() == null || account.getEncodedPassword().trim().length() == 0) {
+				stmt = conn.prepareStatement(
+						"UPDATE Students SET first_name = ?, last_name = ?,"
+						+ "email = ?, phone_number = ?, username = ?,"
+						+ "notes = ? WHERE username = ?");
+				setStringNullable(stmt, 1, account.getFirstName());
+				setStringNullable(stmt, 2, account.getLastName());
+				setStringNullable(stmt, 3, account.getEmail());
+				setStringNullable(stmt, 4, account.getPhoneNumber());
+				setStringNullable(stmt, 5, account.getUsername());
+				setStringNullable(stmt, 6, account.getNotes());
+				setStringNullable(stmt, 7, account.getUsername());
+			} else {
+				stmt = conn.prepareStatement(
+						"UPDATE Students SET first_name = ?, last_name = ?,"
+						+ "email = ?, phone_number = ?, username = ?,"
+						+ "password = ?, notes = ? WHERE username = ?");
+				setStringNullable(stmt, 1, account.getFirstName());
+				setStringNullable(stmt, 2, account.getLastName());
+				setStringNullable(stmt, 3, account.getEmail());
+				setStringNullable(stmt, 4, account.getPhoneNumber());
+				setStringNullable(stmt, 5, account.getUsername());
+				setStringNullable(stmt, 6, account.getEncodedPassword());
+				setStringNullable(stmt, 7, account.getNotes());
+				setStringNullable(stmt, 8, account.getUsername());
+			}
 			int result = stmt.executeUpdate();
 			if (result == 0) {
 				conn.close();
